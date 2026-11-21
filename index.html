@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>圖片掃描比對</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101923;color:#edf5fa;font:16px/1.6 system-ui,sans-serif}
+main{max-width:720px;margin:auto;padding:24px 18px 48px}h1{line-height:1.15}p{color:#bed0da}
+.stage{position:relative;background:#070c12;border:1px solid #355065;border-radius:18px;overflow:hidden;aspect-ratio:4/3}
+video{width:100%;height:100%;object-fit:contain;display:block}
+.guide{position:absolute;box-shadow:0 0 0 100vmax #0008;outline:2px solid #6ef1cf;pointer-events:none}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}button{font:inherit;font-weight:650;padding:8px 14px;border-radius:8px;border:1px solid #537388;background:#203445;color:inherit;cursor:pointer}
+#start{background:#6ef1cf;color:#101923}button:disabled{opacity:.5;cursor:default}
+output{display:block;margin:14px 0;font-weight:650}output[data-match=true]{color:#6ef1cf}
+details canvas{display:block;width:min(100%,290px);height:auto;margin-top:10px;border-radius:6px}
+</style>
+<script defer src="./scanner.js"></script>
+</head>
+<body><main>
+<h1>圖片掃描比對</h1>
+<p>讓目標圖片四邊貼近綠框，保持正面，稍等片刻。</p>
+<div class="stage"><video muted playsinline aria-label="相機預覽"></video><div class="guide" hidden></div></div>
+<div class="controls">
+<button id="start" disabled>開啟相機</button>
+<button id="stop" disabled>關閉相機</button>
+<button id="fileButton" disabled>選圖測試</button>
+<input id="file" type="file" accept="image/*" hidden>
+</div>
+<output role="status" id="result">正在準備參考圖片…</output>
+<details><summary>查看參考圖片</summary><canvas id="reference"></canvas></details>
+</main></body></html>
