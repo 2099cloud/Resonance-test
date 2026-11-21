@@ -1,5 +1,5 @@
 // 設定成 './target.jpg' 即可使用同資料夾中的圖片。空字串會使用內建測試圖。
-const TARGET_URL = '';
+const TARGET_URL = './test.png';
 const MATCH_THRESHOLD = 0.78;
 const REQUIRED_FRAMES = 3;
 const FRAME_INTERVAL = 300;
