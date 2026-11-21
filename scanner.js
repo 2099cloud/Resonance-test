@@ -1,5 +1,5 @@
 // 設定成 './target.jpg' 即可使用同資料夾中的圖片。空字串會使用內建測試圖。
-const TARGET_URL = './test.png';
+const TARGET_URL = './target.jpg';
 const MATCH_THRESHOLD = 0.78;
 const REQUIRED_FRAMES = 3;
 const FRAME_INTERVAL = 300;
@@ -17,6 +17,7 @@ const fileButton = document.querySelector('#fileButton');
 const grid = document.createElement('canvas');
 grid.width = grid.height = GRID;
 const pixels = grid.getContext('2d', { willReadFrequently: true });
+const scoreDisplay = document.querySelector('#score');
 let reference, aspect, stream, interval, crop;
 let cameraGeneration = 0;
 let matchingFrames = 0;
@@ -90,13 +91,13 @@ function correlate(left, right) {
 }
 
 function edges(gray) {
-  const gradients = new Float32Array((GRID - 2) ** 2 * 2);
+  const gradients = new Float32Array((GRID - 4) ** 2 * 2);
   let index = 0;
-  for (let y = 1; y < GRID - 1; y++) {
-    for (let x = 1; x < GRID - 1; x++) {
+  for (let y = 2; y < GRID - 2; y++) {
+    for (let x = 2; x < GRID - 2; x++) {
       const i = y * GRID + x;
-      gradients[index++] = gray[i + 1] - gray[i - 1];
-      gradients[index++] = gray[i + GRID] - gray[i - GRID];
+      gradients[index++] = gray[i + 2] - gray[i - 2];
+      gradients[index++] = gray[i + 2 * GRID] - gray[i - 2 * GRID];
     }
   }
   return gradients;
@@ -104,8 +105,8 @@ function edges(gray) {
 
 function similarity(source, region) {
   const gray = signal(source, region);
-  return 0.55 * correlate(reference.gray, gray) +
-    0.45 * correlate(reference.edges, edges(gray));
+  return 0.65 * correlate(reference.gray, gray) +
+    0.35 * correlate(reference.edges, edges(gray));
 }
 
 function centered(width, height, fill) {
@@ -126,14 +127,38 @@ function positionGuide() {
   guide.hidden = false;
 }
 
+function findCameraMatch(region, scoreRegion) {
+  const scales = [1, 0.9, 0.95, 0.85, 1.05, 0.8];
+  const offsets = [0, 0.04, -0.04, 0.08, -0.08];
+  let best = 0;
+  for (const scale of scales) {
+    const inset = (1 - scale) / 2;
+    for (const dy of offsets) {
+      for (const dx of offsets) {
+        const score = scoreRegion({
+          x: region.x + region.w * (inset + dx),
+          y: region.y + region.h * (inset + dy),
+          w: region.w * scale,
+          h: region.h * scale
+        });
+        best = Math.max(best, score);
+        if (best >= 0.95) return best;
+      }
+    }
+  }
+  return best;
+}
+
+function showScore(score) {
+  scoreDisplay.textContent = '比對分數 ' + score.toFixed(2) +
+    ' ／ 門檻 ' + MATCH_THRESHOLD.toFixed(2);
+  scoreDisplay.hidden = false;
+}
+
 function scan() {
   if (!crop || video.readyState < 2) return;
-  const score = Math.max(...[1, 0.95, 1.05].map(scale => similarity(video, {
-    x: crop.x + crop.w * (1 - scale) / 2,
-    y: crop.y + crop.h * (1 - scale) / 2,
-    w: crop.w * scale,
-    h: crop.h * scale
-  })));
+  const score = findCameraMatch(crop, region => similarity(video, region));
+  showScore(score);
   matchingFrames = score >= MATCH_THRESHOLD ? matchingFrames + 1 : 0;
   if (matchingFrames >= REQUIRED_FRAMES) report('圖片相符', true);
   else if (matchingFrames > 0) report('正在確認，請保持穩定…');
@@ -141,6 +166,7 @@ function scan() {
 }
 
 function closeCamera() {
+  scoreDisplay.hidden = true;
   cameraGeneration++;
   clearInterval(interval);
   stream?.getTracks().forEach(track => track.stop());
@@ -207,6 +233,7 @@ file.addEventListener('change', async () => {
     const image = await loadImage(url);
     if (generation !== cameraGeneration) return;
     const score = similarity(image, centered(image.naturalWidth, image.naturalHeight, 1));
+    showScore(score);
     const matched = score >= MATCH_THRESHOLD;
     report(matched ? '圖片相符' : '圖片未達相符門檻', matched);
   } catch {
@@ -238,3 +265,4 @@ async function initialize() {
 }
 
 initialize();
+

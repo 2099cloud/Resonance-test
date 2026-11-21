@@ -15,11 +15,11 @@ video{width:100%;height:100%;object-fit:contain;display:block}
 output{display:block;margin:14px 0;font-weight:650}output[data-match=true]{color:#6ef1cf}
 details canvas{display:block;width:min(100%,290px);height:auto;margin-top:10px;border-radius:6px}
 </style>
-<script defer src="./scanner.js"></script>
+<script defer src="./scanner.js?v=2"></script>
 </head>
 <body><main>
 <h1>圖片掃描比對</h1>
-<p>讓目標圖片四邊貼近綠框，保持正面，稍等片刻。</p>
+<p>把完整圖片放到綠框中央，盡量填滿框內並保持正面。</p>
 <div class="stage"><video muted playsinline aria-label="相機預覽"></video><div class="guide" hidden></div></div>
 <div class="controls">
 <button id="start" disabled>開啟相機</button>
@@ -28,5 +28,7 @@ details canvas{display:block;width:min(100%,290px);height:auto;margin-top:10px;b
 <input id="file" type="file" accept="image/*" hidden>
 </div>
 <output role="status" id="result">正在準備參考圖片…</output>
+<p id="score" hidden></p>
 <details><summary>查看參考圖片</summary><canvas id="reference"></canvas></details>
 </main></body></html>
+
